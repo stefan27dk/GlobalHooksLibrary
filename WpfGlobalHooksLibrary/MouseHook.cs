@@ -43,7 +43,7 @@ namespace WpfGlobalHooksLibrary
     /// </summary>
     public static class MouseHook
     {
-        // Mouse Messages
+        // ===================== :: Mouse Messagess :: ====================================================================================
         private enum MouseMessages
         {
             WM_LBUTTONDOWN = 0x0201,
@@ -59,6 +59,9 @@ namespace WpfGlobalHooksLibrary
 
 
 
+
+
+        // ===================== :: Mouse POINT :: =========================================================================================
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT
         {
@@ -71,6 +74,10 @@ namespace WpfGlobalHooksLibrary
 
 
 
+
+
+
+        // ===================== :: Mouse Hook Struct :: =====================================================================================
         [StructLayout(LayoutKind.Sequential)]
         private struct MSLLHOOKSTRUCT
         {
@@ -85,19 +92,33 @@ namespace WpfGlobalHooksLibrary
 
 
 
-        // The Global Mouse EventHandler
-        public static event EventHandler MouseAction = delegate { };
-        public static event EventHandler MouseLeftButtonClick = delegate { };
 
 
-        private static LowLevelMouseProc _proc = HookCallback;
-        private static IntPtr _hookID = IntPtr.Zero;
+
+
+        // ===================== :: Declared - Mouse Event Handlers :: =========================================================================  
+        public static event EventHandler MouseAction = delegate { };   // The Global Mouse EventHandler
+        public static event EventHandler MouseLeftButtonClick = delegate { };   // The Global Mouse - Left - Button - Click EventHandler
+        public static event EventHandler MouseRightButtonClick = delegate { };   // The Global Mouse - Right - Button - Click EventHandler
+
+
+
+
+
+
+
+
+
 
 
         /// <summary>
         /// <para> Create Hook: </para>
         /// <para> Later the Hook can be Unhooked with MouseHook.Stop();</para>
         /// </summary>
+        // ===================== :: Start - Hook :: ==============================================================================================  
+        private static LowLevelMouseProc _proc = HookCallback;
+        private static IntPtr _hookID = IntPtr.Zero;
+
         public static void Start()
         {
             _hookID = SetHook(_proc);
@@ -107,9 +128,16 @@ namespace WpfGlobalHooksLibrary
 
 
 
+
+
+
+
+
+
         /// <summary>
         /// <para> Unhook </para>   
         /// </summary>
+        // ===================== :: Stop - Hook  - "Unhook" :: ===================================================================================
         public static void Stop()
         {
             UnhookWindowsHookEx(_hookID);
@@ -118,11 +146,16 @@ namespace WpfGlobalHooksLibrary
 
 
 
+
+
+
+
+
+
         private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
         private const int WH_MOUSE_LL = 14;
 
-
-        // Set - Hook
+        // ===================== :: Set - Hook :: =================================================================================================  
         private static IntPtr SetHook(LowLevelMouseProc proc)
         {
             using (Process curProcess = Process.GetCurrentProcess())
@@ -141,19 +174,35 @@ namespace WpfGlobalHooksLibrary
 
 
 
-        // Hook - Callback
-        private static IntPtr HookCallback(
-          int nCode, IntPtr wParam, IntPtr lParam)
+
+
+        static EventArgs mouse_Left_Button_EventArgs = new EventArgs();
+        static EventArgs mouse_Right_Button_EventArgs = new EventArgs();
+
+        // ===================== :: Hook - Callback :: ============================================================================================== 
+        private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            // Mouse Left Click 
+
+
+            //-----------:: Mouse Left Click ::----------------------------------------------------------------------------------- 
             if (nCode >= 0 && MouseMessages.WM_LBUTTONDOWN == (MouseMessages)wParam)
             {
                 MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-                MouseLeftButtonClick(null, new EventArgs());
+                MouseLeftButtonClick(null, mouse_Left_Button_EventArgs);
             }
 
 
-            MouseAction(null, new EventArgs());
+
+
+            //-----------:: Mouse Right Click ::---------------------------------------------------------------------------------- 
+            if (nCode >= 0 && MouseMessages.WM_RBUTTONDOWN == (MouseMessages)wParam)
+            {
+                MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+                MouseRightButtonClick(null, mouse_Right_Button_EventArgs);
+            }
+
+
+            MouseAction(nCode, new EventArgs());
 
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
@@ -169,7 +218,7 @@ namespace WpfGlobalHooksLibrary
 
 
 
-        // Global  Mouse Event Imports
+        // ===================== :: Global  Mouse Event Imports :: ====================================================================================
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook,
           LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
@@ -183,6 +232,7 @@ namespace WpfGlobalHooksLibrary
           IntPtr wParam, IntPtr lParam);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
+        private static extern IntPtr GetModuleHandle(string lpModuleName);      
     }
+           
 }

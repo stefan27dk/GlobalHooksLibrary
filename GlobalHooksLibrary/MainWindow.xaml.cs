@@ -27,6 +27,7 @@ namespace GlobalHooksLibrary
             MouseHook.Start();  // Mouse Hook
             MouseHook.MouseAction += new EventHandler(Global_Mouse_Event);
             MouseHook.MouseLeftButtonClick += new EventHandler(Global_Mouse_Left_Click_Event);
+            MouseHook.MouseRightButtonClick += new EventHandler(Global_Mouse_Right_Click_Event);
         }
 
      
@@ -36,12 +37,29 @@ namespace GlobalHooksLibrary
         private void Global_Mouse_Event(object sender, EventArgs e)
         {
             
+            //if (Mouse.LeftButton == )
+            //{
+            //    CountGlobalMouseClicks();
+            //}
         }
+
+
+
 
 
 
         // Mouse Hook Global Mouse - Left - Click Event
         private void Global_Mouse_Left_Click_Event(object sender, EventArgs e)
+        {
+            CountGlobalMouseClicks();
+        }
+
+
+
+
+
+        // Mouse Hook Global Mouse - Right - Click Event
+        private void Global_Mouse_Right_Click_Event(object sender, EventArgs e)
         {
             CountGlobalMouseClicks();
         }
